@@ -1,0 +1,41 @@
+timestamp,source_ip,dest_ip,protocol,port,action,bytes_transferred,description
+2026-05-15 08:02:11,185.220.101.45,192.168.10.50,TCP,22,BLOCKED,0,Inbound SSH connection attempt blocked by perimeter firewall
+2026-05-15 08:02:14,185.220.101.45,192.168.10.50,TCP,80,ALLOWED,1204,HTTP probe to web server
+2026-05-15 08:02:17,185.220.101.45,192.168.10.50,TCP,443,ALLOWED,1440,HTTPS probe to web server
+2026-05-15 08:02:19,185.220.101.45,192.168.10.50,TCP,3306,BLOCKED,0,MySQL port scan detected - blocked
+2026-05-15 08:02:22,185.220.101.45,192.168.10.50,TCP,5432,BLOCKED,0,PostgreSQL port scan detected - blocked
+2026-05-15 08:02:25,185.220.101.45,192.168.10.50,TCP,6379,BLOCKED,0,Redis port scan detected - blocked
+2026-05-15 08:02:28,185.220.101.45,192.168.10.50,TCP,8080,ALLOWED,980,HTTP alt port probe
+2026-05-15 08:02:31,185.220.101.45,192.168.10.50,TCP,8443,ALLOWED,1024,HTTPS alt port probe
+2026-05-15 08:02:34,185.220.101.45,192.168.10.50,TCP,27017,BLOCKED,0,MongoDB port scan detected - blocked
+2026-05-15 08:02:37,185.220.101.45,192.168.10.50,TCP,9200,BLOCKED,0,Elasticsearch port scan detected - blocked
+2026-05-15 08:03:10,185.220.101.45,192.168.10.50,ICMP,0,ALLOWED,84,Ping sweep - ICMP echo request
+2026-05-15 08:03:14,185.220.101.45,192.168.10.51,ICMP,0,ALLOWED,84,Ping sweep - ICMP echo request
+2026-05-15 08:03:18,185.220.101.45,192.168.10.52,ICMP,0,ALLOWED,84,Ping sweep - ICMP echo request
+2026-05-15 08:03:22,185.220.101.45,192.168.10.53,ICMP,0,BLOCKED,0,Ping sweep blocked - host unreachable
+2026-05-15 08:05:44,185.220.101.45,192.168.10.50,TCP,22,BLOCKED,0,SSH port scan detected by IDS - nmap fingerprinting signature
+2026-05-15 08:06:01,185.220.101.45,192.168.10.0,TCP,0,ALERT,0,Network service discovery detected: masscan full port sweep initiated from external IP
+2026-05-15 08:10:30,185.220.101.45,192.168.10.50,UDP,53,ALLOWED,512,DNS query to internal resolver - zone transfer attempt
+2026-05-15 09:14:02,194.165.16.11,192.168.10.50,TCP,22,ALLOWED,344,SSH handshake initiated - connection established
+2026-05-15 09:14:05,194.165.16.11,192.168.10.50,TCP,22,ALLOWED,512,SSH authentication exchange
+2026-05-15 10:31:00,194.165.16.11,192.168.10.50,TCP,22,ALLOWED,1024,SSH brute force session begin
+2026-05-15 10:45:44,194.165.16.11,192.168.10.50,TCP,22,ALLOWED,4096,Sustained SSH session - high packet rate login failed repeated
+2026-05-15 12:47:00,194.165.16.11,192.168.10.50,TCP,22,ALLOWED,8192,SSH session authenticated - successful logon for jmiller
+2026-05-15 12:50:00,192.168.10.50,45.227.254.20,TCP,80,ALLOWED,2048,Outbound HTTP GET request from compromised host to C2 server
+2026-05-15 12:50:02,192.168.10.50,45.227.254.20,TCP,80,ALLOWED,204800,Download of agent.sh from C2 server - ingress tool transfer
+2026-05-15 12:50:08,192.168.10.50,45.227.254.20,TCP,80,ALLOWED,512000,Download of svc_host.elf payload from 45.227.254.20 - suspicious binary
+2026-05-15 13:04:20,45.227.254.20,192.168.10.50,TCP,22,ALLOWED,1024,Inbound SSH from secondary attacker IP 45.227.254.20
+2026-05-15 13:10:40,45.227.254.20,192.168.10.50,TCP,22,ALLOWED,8192,SSH root login successful from 45.227.254.20
+2026-05-15 13:15:00,192.168.10.50,45.227.254.20,TCP,4444,ALLOWED,1024,Suspicious outbound connection on port 4444 - possible reverse shell C2 beacon
+2026-05-15 13:16:00,192.168.10.50,45.227.254.20,TCP,4444,ALLOWED,2048,C2 beacon keepalive - repeated at 60s intervals
+2026-05-15 13:20:00,192.168.10.50,10.0.1.100,TCP,445,ALLOWED,4096,Lateral movement attempt - SMB connection from compromised server to workstation
+2026-05-15 13:21:00,192.168.10.50,10.0.1.101,TCP,445,ALLOWED,4096,Lateral movement - SMB probe to additional workstation
+2026-05-15 13:22:00,192.168.10.50,10.0.1.102,TCP,445,BLOCKED,0,Lateral movement blocked by host-based firewall
+2026-05-15 14:05:10,192.168.10.50,45.227.254.20,TCP,22,ALLOWED,5242880,Large outbound SCP transfer - 5MB data exfiltration to C2 server
+2026-05-15 14:10:22,192.168.10.50,45.227.254.20,TCP,22,ALLOWED,10485760,Critical: Large data exfiltration detected - 10MB SCP transfer ongoing
+2026-05-15 14:25:33,192.168.10.50,45.227.254.20,TCP,22,ALLOWED,52428800,ALERT: Massive exfiltration event - 50MB transferred to attacker IP 45.227.254.20
+2026-05-15 14:30:01,192.168.10.50,45.227.254.20,TCP,443,ALLOWED,104857600,CRITICAL: 100MB outbound HTTPS transfer to known malicious IP - possible data theft
+2026-05-15 15:01:15,192.168.10.50,45.227.254.20,TCP,4444,BLOCKED,0,C2 beacon connection blocked after IDS rule update
+2026-05-15 15:44:00,45.227.254.20,192.168.10.50,TCP,22,BLOCKED,0,Attacker SSH reconnection attempt blocked - IP now blacklisted
+2026-05-15 15:50:00,194.165.16.11,192.168.10.50,TCP,22,BLOCKED,0,Brute force source IP 194.165.16.11 now blocked
+2026-05-15 15:51:00,185.220.101.45,192.168.10.50,TCP,22,BLOCKED,0,Reconnaissance source IP 185.220.101.45 now blocked
