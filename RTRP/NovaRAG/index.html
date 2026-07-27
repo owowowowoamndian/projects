@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NovaRAG — Material Science AI</title>
+    <meta name="description" content="Enterprise AI for Material Science. Upload research PDFs and CIF files for accurate, citation-backed analysis powered by Llama 3.3 70B.">
+    <meta name="theme-color" content="#09090b">
+    <meta name="google-site-verification" content="NGTcJfPWeY615BopCAAOqTXZNFstuG6aL76EX0_P8bA" />
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/logo.png" type="image/png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.2/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://3dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { bgBase: '#09090b', bgPanel: '#18181b', bgInput: '#27272a' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --atomic-bg: #0a0a0f;
+            --atomic-surface: rgba(18, 18, 26, 0.72);
+            --atomic-glass: rgba(255,255,255,0.045);
+            --atomic-border: rgba(99,102,241,0.18);
+            --atomic-primary: #6366f1;
+            --atomic-secondary: #22d3ee;
+            --atomic-tertiary: #a855f7;
+            --atomic-muted: #94a3b8;
+            --atomic-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+        body { font-family: 'Inter', sans-serif; background:
+            radial-gradient(ellipse 70% 50% at 15% 20%, rgba(99,102,241,0.09), transparent 60%),
+            radial-gradient(ellipse 55% 40% at 80% 70%, rgba(34,211,238,0.07), transparent 58%),
+            #09090b; color: #e4e4e7; overscroll-behavior-y: none; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
+        .markdown { font-size: 0.95rem; line-height: 1.7; width: 100%; word-break: break-word; }
+        .markdown h1, .markdown h2, .markdown h3 { color: #fff; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .markdown p { margin-bottom: 1rem; color: #d4d4d8; }
+        .markdown ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1.25rem; color: #d4d4d8; }
+        .markdown ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 1.25rem; color: #d4d4d8; }
+        .markdown table { width: 100%; border-collapse: collapse; text-align: left; background: #18181b; margin-bottom: 1.5rem; border-radius: 0.5rem; border: 1px solid #27272a; }
+        .markdown th, .markdown td { border-bottom: 1px solid #27272a; padding: 0.75rem 1rem; font-size: 0.85rem; }
+        .markdown th { background-color: #27272a; color: #fff; font-weight: 500; }
+        .markdown pre { background-color: #0d1117; padding: 1rem; border-radius: 0 0 0.5rem 0.5rem; overflow-x: auto; margin-bottom: 1.5rem; border: 1px solid #3f3f46; border-top: none; font-size: 0.85rem; }
+        .markdown code:not(pre code) { background-color: #27272a; padding: 0.2rem 0.4rem; border-radius: 0.3rem; font-family: monospace; font-size: 0.85em; color: #fff; }
+        .markdown strong { color: #a5b4fc; }
+        @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-in { animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .blinking-cursor { display: inline-block; width: 6px; height: 16px; background-color: #fff; animation: blink 1s step-end infinite; margin-left: 4px; vertical-align: text-bottom; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .premium-input-container { background-color: rgba(39, 39, 42, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1.5rem; transition: all 0.3s ease; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
+        .premium-input-container:focus-within { border-color: rgba(255, 255, 255, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05); background-color: rgba(39, 39, 42, 0.8); }
+        .toggle-checkbox:checked { right: 0; border-color: #10b981; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #10b981; }
+        .action-btn { opacity: 0; transition: opacity 0.2s; }
+        .msg-wrapper:hover .action-btn { opacity: 1; }
+        .model-badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .send-btn-gradient { background: linear-gradient(135deg, #ffffff 0%, #e4e4e7 100%); transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s; }
+        .send-btn-gradient:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); }
+        .atomic-view-switcher { display: flex; align-items: center; gap: 4px; padding: 4px; background: rgba(12,12,20,0.82); border: 1px solid rgba(99,102,241,0.22); border-radius: 999px; box-shadow: 0 0 28px rgba(99,102,241,0.14); min-width: 0; }
+        .atomic-view-btn { font-size: 12px; color: #94a3b8; padding: 8px 18px; border-radius: 999px; transition: all .22s ease; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; font-weight: 500; }
+        .atomic-view-btn:hover { color: #fff; background: rgba(255,255,255,0.06); }
+        .atomic-view-btn.active { color: #fff; background: linear-gradient(135deg, var(--atomic-primary), var(--atomic-tertiary)); box-shadow: 0 0 20px rgba(99,102,241,0.32); }
+        .atomic-panel { flex: 1; min-height: 0; overflow: hidden; padding: clamp(10px, 1.6vw, 24px); }
+        .atomic-panel.hidden, #chat-input-area.hidden, #chat-box.hidden { display: none; }
+        .atomic-card { min-height: 0; background: rgba(18,18,26,0.72); border: 1px solid var(--atomic-border); border-radius: 14px; backdrop-filter: blur(18px); box-shadow: 0 24px 70px rgba(0,0,0,0.24); overflow: hidden; }
+        .scholar-shell { height: 100%; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 14px; max-width: 1680px; margin: 0 auto; }
+        .scholar-grid { min-height: 0; display: grid; grid-template-columns: minmax(300px, 0.72fr) minmax(0, 1.28fr); gap: 16px; }
+        .scholar-terminal { display: flex; flex-direction: column; }
+        .scholar-terminal-head { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.07); color: #cbd5e1; font: 600 11px var(--atomic-mono); letter-spacing: .04em; text-transform: uppercase; }
+        .term-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: var(--atomic-primary); box-shadow: 0 0 10px currentColor; }
+        .term-dot:nth-child(2) { background: var(--atomic-secondary); }
+        .term-dot:nth-child(3) { background: var(--atomic-tertiary); }
+        .scholar-terminal-body { flex: 1; overflow-y: auto; padding: 14px; font: 12px/1.65 var(--atomic-mono); color: #cbd5e1; }
+        .term-line { display: grid; grid-template-columns: 76px minmax(0,1fr); gap: 10px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.025); }
+        .term-time { color: #64748b; }
+        .term-line.phase .term-text { color: #67e8f9; }
+        .term-line.error .term-text { color: #fca5a5; }
+        .scholar-report { display: flex; flex-direction: column; padding: 18px; overflow-y: auto; }
+        .scholar-report-empty { height: 100%; min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #94a3b8; padding: 24px; }
+        .scholar-form { display: grid; grid-template-columns: 170px minmax(0, 1fr) 48px; gap: 10px; background: rgba(12,12,20,.82); border: 1px solid rgba(99,102,241,0.18); border-radius: 16px; padding: 10px; box-shadow: 0 -8px 34px rgba(0,0,0,.24); }
+        /* Dark-themed custom select for Scholar depth */
+        .scholar-form select, .scholar-form textarea { min-width: 0; background: rgba(255,255,255,0.045); border: 1px solid var(--atomic-border); border-radius: 12px; padding: 12px 14px; color: #e5e7eb; resize: none; }
+        .scholar-form select { -webkit-appearance: none; -moz-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11.5l-5-5h10l-5 5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-size: 12px; padding-right: 36px; cursor: pointer; font-size: 13px; font-weight: 500; letter-spacing: 0.01em; transition: border-color 0.2s, box-shadow 0.2s; }
+        .scholar-form select:hover { border-color: rgba(99,102,241,0.4); }
+        .scholar-form select:focus { outline: none; border-color: var(--atomic-primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+        .scholar-form select option { background: #18181b; color: #e5e7eb; padding: 10px; }
+        .scholar-form textarea { max-height: 116px; overflow-y: auto; }
+        .scholar-form button, .lab-action { border-radius: 12px; background: linear-gradient(135deg, var(--atomic-primary), var(--atomic-tertiary)); color: #fff; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 22px rgba(99,102,241,.24); min-height: 42px; }
+        .lab-shell { height: 100%; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 14px; max-width: 1920px; margin: 0 auto; }
+        .lab-workspace { min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 420px); gap: 16px; }
+        .lab-viewer-card { position: relative; display: flex; min-height: 0; background: radial-gradient(circle at 50% 45%, rgba(99,102,241,.08), transparent 38%), rgba(4,4,10,.88); }
+        #viewer3d-main { width: 100%; height: 100%; min-height: 520px; }
+        .lab-overlay { position: absolute; inset: 14px auto auto 14px; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; pointer-events: none; }
+        .lab-chip { pointer-events: auto; font: 11px var(--atomic-mono); color: #cbd5e1; background: rgba(0,0,0,.42); border: 1px solid rgba(255,255,255,.08); border-radius: 999px; padding: 7px 10px; backdrop-filter: blur(12px); }
+        .lab-side { padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+        .lab-field label, .lab-control-label { display:block; font-size: 11px; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+        .lab-side textarea { width: 100%; min-height: 92px; background: rgba(255,255,255,0.045); border: 1px solid var(--atomic-border); border-radius: 12px; padding: 12px; color: #e5e7eb; font-family: var(--atomic-mono); resize: vertical; }
+        #cif-input { min-height: 150px; }
+        .lab-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .lab-action { padding: 10px 12px; font-size: 12px; font-weight: 650; }
+        .lab-action.secondary { background: rgba(255,255,255,.045); color: #cbd5e1; border: 1px solid rgba(99,102,241,.22); box-shadow: none; }
+        .lab-action.active { background: linear-gradient(135deg, var(--atomic-primary), var(--atomic-tertiary)); color: #fff; box-shadow: 0 0 22px rgba(99,102,241,.24); }
+        .lab-bottom { display: grid; grid-template-columns: minmax(280px, 0.8fr) minmax(320px, 1.2fr); gap: 14px; }
+        .lab-bottom-card { padding: 16px; }
+        .preset-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        /* Thermal slider with dynamic gradient track */
+        .thermal-slider { width: 100%; height: 8px; -webkit-appearance: none; appearance: none; border-radius: 8px; outline: none; background: linear-gradient(90deg, #3b82f6 0%, #6366f1 25%, #f59e0b 55%, #ef4444 85%, #dc2626 100%); opacity: 0.85; transition: opacity 0.2s; }
+        .thermal-slider:hover { opacity: 1; }
+        .thermal-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 0 3px rgba(99,102,241,0.3); border: 2px solid #27272a; transition: box-shadow 0.2s, transform 0.15s; }
+        .thermal-slider::-webkit-slider-thumb:hover { transform: scale(1.15); box-shadow: 0 2px 12px rgba(0,0,0,0.5), 0 0 0 4px rgba(99,102,241,0.4); }
+        .thermal-slider::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 0 3px rgba(99,102,241,0.3); border: 2px solid #27272a; }
+        .thermal-slider::-moz-range-track { height: 8px; border-radius: 8px; background: linear-gradient(90deg, #3b82f6 0%, #6366f1 25%, #f59e0b 55%, #ef4444 85%, #dc2626 100%); }
+        .thermal-scale { display: flex; justify-content: space-between; color: #64748b; font-size: 11px; margin-top: 8px; }
+        .thermal-scale span { transition: color 0.3s; }
+        /* Inline molecule viewer styles */
+        .inline-mol-viewer { width: 100%; min-height: 400px; margin: 18px 0; border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; background: rgba(8,8,13,0.86); overflow: hidden; position: relative; box-shadow: inset 0 0 0 1px rgba(99,102,241,.08), 0 18px 50px rgba(0,0,0,.22); backdrop-filter: blur(14px); }
+        .inline-mol-viewer.mol-failed { display: none !important; }
+        .inline-mol-label { position: absolute; left: 10px; top: 10px; z-index: 2; font: 11px var(--atomic-mono); color: #cbd5e1; background: rgba(0,0,0,0.46); border: 1px solid rgba(255,255,255,0.08); border-radius: 999px; padding: 5px 8px; max-width: calc(100% - 20px); overflow: hidden; text-overflow: ellipsis; }
+        .inline-mol-error { padding: 48px 14px; text-align: center; color: #fca5a5; font-size: 12px; }
+        /* Welcome prompt cards */
+        .welcome-card { background: rgba(24,24,27,0.8); border: 1px solid #27272a; border-radius: 1rem; padding: 1.25rem 1.5rem; text-align: left; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; backdrop-filter: blur(8px); min-height: 110px; display: flex; flex-direction: column; justify-content: center; }
+        .welcome-card:hover { background: rgba(39,39,42,0.9); border-color: rgba(99,102,241,0.3); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.3), 0 0 0 1px rgba(99,102,241,0.1); }
+        .welcome-card i { font-size: 1.25rem; margin-bottom: 0.75rem; color: #6366f1; transition: color 0.2s, transform 0.2s; }
+        .welcome-card:hover i { color: #a5b4fc; transform: scale(1.1); }
+        .welcome-card .wc-title { font-size: 0.9rem; color: #e4e4e7; font-weight: 600; margin-bottom: 0.35rem; }
+        .welcome-card .wc-desc { font-size: 0.75rem; color: #71717a; line-height: 1.5; }
+        @media (max-width: 1180px) {
+            .lab-workspace { grid-template-columns: 1fr; grid-template-rows: minmax(420px, 1fr) auto; overflow-y: auto; }
+            .lab-bottom { grid-template-columns: 1fr; }
+            .lab-side { max-height: none; }
+        }
+        @media (max-width: 900px) {
+            body { overflow: hidden; }
+            #app-sidebar { width: min(86vw, 300px); }
+            .atomic-panel { padding: 10px; overflow-y: auto; }
+            .scholar-shell { min-height: 720px; }
+            .scholar-grid { grid-template-columns: 1fr; grid-template-rows: minmax(210px, 0.42fr) minmax(300px, 0.58fr); }
+            .scholar-form { grid-template-columns: 1fr 48px; position: sticky; bottom: 0; z-index: 5; }
+            .scholar-form select { grid-column: 1 / -1; }
+            .lab-shell { min-height: 860px; }
+            #viewer3d-main { min-height: 420px; }
+            .atomic-view-btn { padding: 7px 12px; font-size: 11px; }
+        }
+        @media (max-width: 640px) {
+            .atomic-view-switcher { position: fixed; left: 50%; bottom: max(12px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 45; box-shadow: 0 12px 38px rgba(0,0,0,.42), 0 0 24px rgba(99,102,241,.20); padding: 5px; background: rgba(12,12,20,0.92); }
+            .atomic-view-btn { width: auto; min-width: 52px; padding: 10px 14px; font-size: 12px; }
+            .atomic-view-btn span { display: none; }
+            .atomic-view-btn i { font-size: 14px; }
+            .h-14 { min-height: 56px; }
+            #chat-box { padding-bottom: 100px; }
+            #chat-input-area { padding-bottom: calc(5rem + env(safe-area-inset-bottom)) !important; }
+            .scholar-shell, .lab-shell { padding-bottom: 76px; }
+            .term-line { grid-template-columns: 1fr; gap: 2px; }
+            .scholar-report-empty { min-height: 240px; }
+            .inline-mol-viewer { min-height: 280px; }
+            .lab-actions, .preset-grid { gap: 7px; }
+            .lab-action { flex: 1 1 auto; }
+            .welcome-card { min-height: 90px; padding: 1rem 1.1rem; }
+            .welcome-card i { font-size: 1.1rem; margin-bottom: 0.5rem; }
+        }
+    </style>
+</head>
+<body class="flex h-[100dvh] overflow-hidden antialiased">
+
+    <div id="toast-container" class="fixed top-5 left-1/2 transform -translate-x-1/2 md:left-auto md:right-5 md:translate-x-0 z-[100] flex flex-col gap-3 w-[90%] md:w-auto"></div>
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-30 hidden transition-opacity" onclick="closeSidebar()"></div>
+
+    <!-- ============== SIDEBAR ============== -->
+    <div id="app-sidebar" class="w-[280px] bg-bgPanel border-r border-[#27272a] flex flex-col z-40 fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none">
+        <div class="p-5 flex items-center justify-between md:justify-start gap-3">
+            <div class="flex items-center gap-3">
+                <img src="/logo.png" alt="NovaRAG" class="w-8 h-8 rounded-lg shadow-md border border-[#3f3f46] object-cover bg-black" onerror="this.src='https://ui-avatars.com/api/?name=NR&background=18181b&color=fff'">
+                <div>
+                    <h1 class="font-bold text-base tracking-wide text-white">NovaRAG</h1>
+                    <p class="text-[10px] text-gray-500 font-medium tracking-widest uppercase">v2.0 Enterprise</p>
+                </div>
+            </div>
+            <button onclick="closeSidebar()" class="md:hidden text-gray-400 hover:text-white p-2"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+
+        <div class="px-4 py-2">
+            <button onclick="createNewWorkspace()" class="w-full flex items-center gap-3 bg-[#27272a] text-white font-medium px-4 py-3 rounded-xl hover:bg-[#3f3f46] transition-all text-sm border border-[#3f3f46] shadow-sm group">
+                <i class="fa-solid fa-plus group-hover:rotate-90 transition-transform duration-300"></i> New Workspace
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-3 py-4 flex flex-col">
+            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 px-2">Workspaces</p>
+            <div id="sessions-list" class="space-y-1 flex-1"></div>
+            <div class="mt-4 pt-4 border-t border-[#27272a]">
+                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 px-2">Database Sync</p>
+                <div class="text-xs text-gray-400 flex items-center gap-2 px-2">
+                    <i class="fa-solid fa-cloud-arrow-up" id="sync-icon"></i> <span id="sync-text">Local Storage</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 border-t border-[#27272a] bg-[#18181b]">
+            <button onclick="toggleSettings()" class="w-full flex items-center justify-between hover:bg-[#27272a] p-2 rounded-lg transition-all">
+                <div class="flex items-center gap-3 text-left">
+                    <img id="user-avatar" src="https://ui-avatars.com/api/?name=Guest&background=18181b&color=fff" class="w-9 h-9 rounded-full shadow-inner border border-[#3f3f46]">
+                    <div>
+                        <p id="user-name" class="text-sm font-medium text-white line-clamp-1">Guest User</p>
+                        <p id="user-email" class="text-[10px] text-gray-400">Not Synced</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-gear text-gray-500 px-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============== MAIN CHAT AREA ============== -->
+    <div class="flex-1 flex flex-col bg-bgBase h-[100dvh] relative w-full overflow-hidden">
+        <!-- Header -->
+        <div class="h-14 border-b border-white/5 flex items-center px-4 md:px-6 bg-bgBase/60 backdrop-blur-xl flex-shrink-0 z-10 w-full shadow-sm" style="display:grid;grid-template-columns:1fr auto 1fr;">
+            <div class="flex items-center gap-2">
+                <button onclick="openSidebar()" class="md:hidden text-gray-400 hover:text-white mr-2 p-1"><i class="fa-solid fa-bars text-lg"></i></button>
+                <span class="text-gray-400 text-[10px] md:text-xs font-medium px-2 py-1 rounded bg-[#18181b] border border-[#27272a]"><i class="fa-solid fa-shield-halved mr-1"></i>Secure Session</span>
+                <span id="cif-badge" class="hidden text-emerald-400 text-[10px] md:text-xs font-medium px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 animate-in"><i class="fa-solid fa-lock mr-1"></i>Data Secured</span>
+                <span id="model-badge" class="model-badge bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">70B Quality</span>
+            </div>
+            <div class="atomic-view-switcher">
+                <button id="view-chat" class="atomic-view-btn active" onclick="switchWorkspaceView('chat')" title="Chat"><i class="fa-regular fa-message"></i><span>Chat</span></button>
+                <button id="view-scholar" class="atomic-view-btn" onclick="switchWorkspaceView('scholar')" title="Scholar"><i class="fa-solid fa-book-open-reader"></i><span>Scholar</span></button>
+                <button id="view-lab" class="atomic-view-btn" onclick="switchWorkspaceView('lab')" title="3D Lab"><i class="fa-solid fa-cubes"></i><span>3D Lab</span></button>
+            </div>
+            <div class="flex items-center justify-end">
+                <button id="header-export-btn" onclick="exportChat()" class="text-gray-400 hover:text-white transition-all text-xs font-medium px-2 md:px-3 py-1.5 rounded-lg hover:bg-[#27272a] flex items-center gap-2 shrink-0"><i class="fa-solid fa-download"></i> <span class="hidden md:inline">Export</span></button>
+            </div>
+        </div>
+
+        <!-- Chat messages -->
+        <div id="chat-box" class="flex-1 overflow-y-auto p-3 md:p-8 relative scroll-smooth w-full">
+            <div id="welcome-screen" class="absolute inset-0 flex flex-col items-center justify-center text-center w-full px-4 pb-20 transition-opacity duration-300">
+                <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/10 flex items-center justify-center mb-6 border border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.15)]">
+                    <i class="fa-solid fa-bolt text-xl md:text-2xl text-indigo-300"></i>
+                </div>
+                <h2 class="text-xl md:text-2xl font-semibold mb-2 text-white">What shall we analyze today?</h2>
+                <p class="text-gray-400 text-xs md:text-sm mb-8 max-w-lg leading-relaxed">Upload research PDFs or CIF files. NovaRAG retrieves from FAISS, Pinecone & web in parallel — every answer is citation-backed.</p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 w-full max-w-3xl px-2">
+                    <button onclick="setPrompt('Analyze this material structure and output lattice parameters, space group, and a property table:')" class="welcome-card">
+                        <i class="fa-solid fa-atom"></i>
+                        <p class="wc-title">Materials & CIF</p>
+                        <p class="wc-desc">Structural analysis with lattice parameters, space groups & citations</p>
+                    </button>
+                    <button onclick="setPrompt('Synthesize the key findings, methodologies, and conclusions from the uploaded research papers:')" class="welcome-card">
+                        <i class="fa-solid fa-microscope"></i>
+                        <p class="wc-title">Literature Review</p>
+                        <p class="wc-desc">Synthesize research papers with cross-referenced findings</p>
+                    </button>
+                    <button onclick="setPrompt('Compare the mechanical properties, thermal stability, and applications of ')" class="welcome-card">
+                        <i class="fa-solid fa-flask-vial"></i>
+                        <p class="wc-title">Property Comparison</p>
+                        <p class="wc-desc">Compare materials by mechanical, thermal & electronic properties</p>
+                    </button>
+                </div>
+            </div>
+            <div id="chat-content" class="relative z-10 w-full flex flex-col pb-6 max-w-3xl mx-auto"></div>
+        </div>
+
+        <!-- Auto-Scholar -->
+        <div id="scholar-panel" class="atomic-panel hidden">
+            <div class="scholar-shell">
+                <div class="scholar-grid">
+                    <div class="atomic-card scholar-terminal">
+                        <div class="scholar-terminal-head">
+                            <span class="term-dot"></span><span class="term-dot"></span><span class="term-dot"></span>
+                            <span class="ml-2">Research Terminal</span>
+                        </div>
+                        <div class="scholar-terminal-body" id="scholar-terminal">
+                            <div class="term-line"><span class="term-time">ready</span><span class="term-text">Nova Auto-Scholar connected. Awaiting a live research query.</span></div>
+                        </div>
+                    </div>
+                    <div class="atomic-card scholar-report markdown" style="position:relative;">
+                        <div id="scholar-empty" class="scholar-report-empty">
+                            <div class="w-14 h-14 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 flex items-center justify-center mb-5 shadow-[0_0_24px_rgba(99,102,241,.22)]">
+                                <i class="fa-solid fa-atom text-white"></i>
+                            </div>
+                            <h3 class="text-white text-lg mb-2">Nova Auto-Scholar</h3>
+                            <p class="text-sm max-w-md">Launch a live research run over the same FAISS, Pinecone, web, and Groq pipeline used by chat.</p>
+                        </div>
+                        <button id="scholar-download-btn" onclick="exportScholarReport()" class="hidden" style="position:absolute;top:14px;right:14px;z-index:5;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:6px;box-shadow:0 4px 16px rgba(99,102,241,0.3);transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='scale(1.04)';this.style.boxShadow='0 6px 24px rgba(99,102,241,0.4)';" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 16px rgba(99,102,241,0.3)';">
+                            <i class="fa-solid fa-file-pdf"></i> Download PDF Report
+                        </button>
+                        <div id="scholar-report-content" class="hidden"></div>
+                    </div>
+                </div>
+                <div class="scholar-form">
+                    <select id="scholar-depth" title="Research depth">
+                        <option value="standard">⚡ Standard</option>
+                        <option value="deep">🔬 Deep Research</option>
+                    </select>
+                    <textarea id="scholar-input" rows="1" placeholder="Research a material science topic..." onkeydown="handleScholarKey(event)" oninput="this.style.height='';this.style.height=Math.min(this.scrollHeight,116)+'px'"></textarea>
+                    <button id="scholar-send" onclick="startResearch()" title="Start research"><i class="fa-solid fa-arrow-up"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3D Spatial Engine -->
+        <div id="lab-panel" class="atomic-panel hidden">
+            <div class="lab-shell">
+                <div class="lab-workspace">
+                    <div class="atomic-card lab-viewer-card">
+                        <div class="lab-overlay">
+                            <span class="lab-chip" id="lab-status">Spatial Engine Ready</span>
+                            <span class="lab-chip" id="lab-format">No structure loaded</span>
+                            <span class="lab-chip">Drag rotate · Wheel zoom · Right-drag pan</span>
+                        </div>
+                        <div id="viewer3d-main"></div>
+                    </div>
+                    <div class="atomic-card lab-side">
+                        <div class="lab-field">
+                            <label for="smiles-input">SMILES Input</label>
+                            <textarea id="smiles-input" placeholder="e.g., c1ccccc1"></textarea>
+                            <div class="lab-actions">
+                                <button class="lab-action" onclick="renderLabSmiles()"><i class="fa-solid fa-play mr-2"></i>Render SMILES</button>
+                                <button class="lab-action secondary" onclick="clearLabViewer()">Clear</button>
+                            </div>
+                        </div>
+                        <div class="lab-field">
+                            <label for="cif-input">CIF Data</label>
+                            <textarea id="cif-input" placeholder="Paste crystallographic CIF data here..."></textarea>
+                            <div class="lab-actions">
+                                <button class="lab-action" onclick="renderLabCif()"><i class="fa-solid fa-cube mr-2"></i>Load CIF</button>
+                                <button class="lab-action secondary" onclick="loadPresetCif('diamond')">Diamond CIF</button>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="lab-control-label">Render Mode</span>
+                            <div class="lab-actions">
+                                <button id="lab-rep-ballstick" class="lab-action active" onclick="setLabRepresentation('ballstick')">Ball+Stick</button>
+                                <button id="lab-rep-stick" class="lab-action secondary" onclick="setLabRepresentation('stick')">Stick</button>
+                                <button id="lab-rep-sphere" class="lab-action secondary" onclick="setLabRepresentation('sphere')">Space Fill</button>
+                                <button id="lab-spin" class="lab-action secondary" onclick="toggleLabSpin()">Auto-Spin</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="lab-bottom">
+                    <div class="atomic-card lab-bottom-card">
+                        <span class="lab-control-label">Quick Load</span>
+                        <div class="preset-grid">
+                            <button class="lab-action secondary" onclick="loadPresetSmiles('O')">Water</button>
+                            <button class="lab-action secondary" onclick="loadPresetSmiles('CCO')">Ethanol</button>
+                            <button class="lab-action secondary" onclick="loadPresetSmiles('c1ccccc1')">Benzene</button>
+                            <button class="lab-action secondary" onclick="loadPresetSmiles('CC(=O)Oc1ccccc1C(=O)O')">Aspirin</button>
+                            <button class="lab-action secondary" onclick="loadPresetSmiles('Cn1cnc2c1c(=O)n(c(=O)n2C)C')">Caffeine</button>
+                            <button class="lab-action secondary" onclick="loadPresetCif('diamond')">Diamond</button>
+                        </div>
+                    </div>
+                    <div class="atomic-card lab-bottom-card">
+                        <span class="lab-control-label">Thermal Expansion Simulator</span>
+                        <div class="flex items-center gap-4">
+                            <input id="thermal-slider" class="thermal-slider" type="range" min="0" max="2000" step="50" value="0" oninput="applyThermalExpansion(this.value)">
+                            <span id="thermal-value" class="text-sm font-mono w-24 text-right font-semibold" style="color:#3b82f6">0 K</span>
+                        </div>
+                        <div class="thermal-scale" id="thermal-scale-labels"><span>0 K</span><span style="color:#6366f1">500 K</span><span style="color:#f59e0b">1000 K</span><span style="color:#ef4444">1500 K</span><span style="color:#dc2626">2000 K</span></div>
+                        <div class="lab-actions">
+                            <button class="lab-action secondary" onclick="resetThermalExpansion()"><i class="fa-solid fa-arrow-rotate-left mr-1"></i>Reset</button>
+                            <button class="lab-action secondary" onclick="centerLabViewer()"><i class="fa-solid fa-crosshairs mr-1"></i>Auto-Center</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input area -->
+        <div id="chat-input-area" class="px-3 md:px-4 pt-2 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent flex-shrink-0 w-full relative z-20" style="padding-bottom: max(1rem, env(safe-area-inset-bottom));">
+            <div class="max-w-3xl mx-auto relative">
+                <div id="status-bar" class="absolute -top-6 left-2 text-[10px] md:text-[11px] font-medium text-gray-400 hidden flex items-center gap-2">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> <span id="status-text">Thinking...</span>
+                </div>
+                <div class="premium-input-container flex items-end p-1.5 md:p-2 px-2 md:px-3 gap-1 md:gap-2">
+                    <div class="flex items-center gap-0.5 md:gap-1 pb-1 shrink-0">
+                        <label class="cursor-pointer text-gray-400 hover:text-white hover:bg-[#3f3f46] w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center transition-all" title="Upload PDF / CIF / TXT">
+                            <i class="fa-solid fa-paperclip text-[14px]"></i>
+                            <input type="file" id="file-upload" accept=".pdf,.cif,.txt" class="hidden">
+                        </label>
+                        <button id="web-btn" onclick="toggleWebSearch()" class="text-gray-400 hover:text-white hover:bg-[#3f3f46] w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center transition-all" title="Toggle Web Search">
+                            <i class="fa-solid fa-globe text-[14px]"></i>
+                        </button>
+                    </div>
+                    <textarea id="chat-input" rows="1" placeholder="Message NovaRAG..." class="flex-1 bg-transparent border-none focus:outline-none text-white placeholder-gray-500 resize-none text-[14px] md:text-[15px] py-2 md:py-2.5 leading-relaxed" oninput="this.style.height='';this.style.height=Math.min(this.scrollHeight,150)+'px'"></textarea>
+                    <div class="pb-1 pl-1 shrink-0">
+                        <button id="send-btn" class="send-btn-gradient text-black w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center shadow-md">
+                            <i class="fa-solid fa-arrow-up text-[14px]"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mt-2 px-1 md:px-2">
+                    <span id="upload-status" class="text-[9px] md:text-[10px] font-medium hidden text-emerald-400 tracking-wide"></span>
+                    <p class="text-[9px] md:text-[10px] text-gray-500 tracking-wide flex-1 text-center">Powered by Llama 3.3 70B · Verify critical data</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============== DELETE MODAL ============== -->
+    <div id="delete-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] hidden flex items-center justify-center transition-opacity px-4">
+        <div class="bg-[#18181b] border border-[#27272a] w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center animate-in">
+            <div class="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto mb-4 border border-red-500/20"><i class="fa-solid fa-triangle-exclamation text-xl"></i></div>
+            <h3 class="text-lg font-semibold text-white mb-2">Delete Workspace?</h3>
+            <p class="text-sm text-gray-400 mb-6">All data and chat history for this workspace will be permanently wiped.</p>
+            <div class="flex gap-3 w-full">
+                <button onclick="cancelDelete()" class="flex-1 bg-[#27272a] text-white py-2.5 rounded-lg text-sm font-medium hover:bg-[#3f3f46] transition-colors">Cancel</button>
+                <button onclick="executeDelete()" class="flex-1 bg-red-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors shadow-lg shadow-red-900/20">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============== SETTINGS MODAL ============== -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center transition-opacity px-4">
+        <div class="bg-[#18181b] border border-[#27272a] w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in">
+            <div class="p-4 border-b border-[#27272a] flex items-center justify-between">
+                <h3 class="text-base font-semibold text-white">Settings</h3>
+                <button onclick="toggleSettings()" class="text-gray-500 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-5 space-y-6">
+                <!-- Model Mode -->
+                <div>
+                    <p class="text-sm font-medium text-white mb-3">AI Model</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="mode-quality" onclick="setModelMode('quality')" class="p-3 rounded-xl border text-left transition-all bg-indigo-500/10 border-indigo-500/30 text-indigo-300">
+                            <p class="text-sm font-semibold">🧠 Quality</p>
+                            <p class="text-[10px] text-gray-400 mt-1">Llama 3.3 70B — best accuracy</p>
+                        </button>
+                        <button id="mode-speed" onclick="setModelMode('speed')" class="p-3 rounded-xl border text-left transition-all bg-[#27272a] border-[#3f3f46] text-gray-400">
+                            <p class="text-sm font-semibold">⚡ Speed</p>
+                            <p class="text-[10px] text-gray-400 mt-1">Llama 3.1 8B — faster responses</p>
+                        </button>
+                    </div>
+                </div>
+                <!-- Temperature -->
+                <div>
+                    <label class="flex justify-between text-sm font-medium text-gray-300 mb-3">
+                        <span>Creativity (Temperature)</span>
+                        <span id="temp-display" class="text-white bg-[#27272a] px-2 py-0.5 rounded text-xs border border-[#3f3f46]">0.2</span>
+                    </label>
+                    <input type="range" id="setting-temp" min="0.1" max="1.0" step="0.1" value="0.2" class="w-full accent-white h-1 bg-[#27272a] rounded-lg cursor-pointer" oninput="document.getElementById('temp-display').innerText=this.value; activeTemp=parseFloat(this.value);">
+                </div>
+                <!-- Global Opt-in -->
+                <div class="bg-[#27272a] p-4 rounded-xl border border-[#3f3f46]">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-sm font-medium text-white">Contribute to Global DB</span>
+                        <div class="relative inline-block w-9 h-5 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="global-opt-in" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-[#3f3f46] appearance-none cursor-pointer transition-all duration-300 z-10"/>
+                            <label for="global-opt-in" class="toggle-label block overflow-hidden h-5 rounded-full bg-[#3f3f46] cursor-pointer border border-[#3f3f46] transition-colors duration-300"></label>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-gray-400 leading-relaxed mt-1">Allow uploaded files to be added to the shared Material Science knowledge base.</p>
+                </div>
+                <!-- Auth -->
+                <div class="pt-4 border-t border-[#27272a]">
+                    <p class="text-sm font-medium text-white mb-3">Cloud Sync</p>
+                    <button id="google-login-btn" class="w-full bg-white text-black px-4 py-3 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-all flex items-center justify-center gap-2 shadow-md">
+                        <i class="fa-brands fa-google"></i> Sign in with Google
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============== FIREBASE AUTH (module script) ============== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCZdGzTqUqwKO0FD99LpsHEMXrXoY1hDc4",
+            authDomain: "novarag-69b41.firebaseapp.com",
+            projectId: "novarag-69b41",
+            storageBucket: "novarag-69b41.firebasestorage.app",
+            messagingSenderId: "131156901542",
+            appId: "1:131156901542:web:446bb5b7d8b3bf768bfe67"
+        };
+
+        try {
+            const fbApp = initializeApp(firebaseConfig);
+            const auth = getAuth(fbApp);
+            const db = getFirestore(fbApp);
+            const provider = new GoogleAuthProvider();
+
+            window.currentUserUID = null;
+            window.firebaseIdToken = null;
+
+            const loginBtn = document.getElementById('google-login-btn');
+
+            loginBtn.addEventListener('click', () => {
+                if (auth.currentUser) {
+                    signOut(auth).then(() => {
+                        window.currentUserUID = null;
+                        window.firebaseIdToken = null;
+                        document.getElementById('sync-text').innerText = "Local Storage";
+                        document.getElementById('sync-icon').className = "fa-solid fa-cloud-arrow-up text-gray-400";
+                        showToast("Signed out securely.", "success");
+                    });
+                } else {
+                    signInWithPopup(auth, provider).catch(() => showToast("Authentication Failed.", "error"));
+                }
+            });
+
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    window.currentUserUID = user.uid;
+                    window.firebaseIdToken = await user.getIdToken();
+
+                    // Auto-refresh token every 50 min (Firebase tokens expire after 1hr)
+                    setInterval(async () => {
+                        try { window.firebaseIdToken = await user.getIdToken(true); } catch(e) {}
+                    }, 50 * 60 * 1000);
+
+                    document.getElementById('user-name').innerText = user.displayName;
+                    document.getElementById('user-email').innerText = "Cloud Sync Active";
+                    document.getElementById('user-avatar').src = user.photoURL;
+                    loginBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Sign Out';
+                    document.getElementById('sync-text').innerText = "Firebase Cloud Sync";
+                    document.getElementById('sync-icon').className = "fa-solid fa-cloud text-emerald-400";
+
+                    const docRef = doc(db, "users", user.uid);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists() && docSnap.data().sessions) {
+                        window.allSessions = docSnap.data().sessions;
+                        const sortedIds = Object.keys(window.allSessions).sort((a,b) => window.allSessions[b].updatedAt - window.allSessions[a].updatedAt);
+                        if (sortedIds.length > 0) window.loadSession(sortedIds[0]);
+                        else window.createNewWorkspace();
+                    } else if (window.saveToCloud) {
+                        window.saveToCloud(window.allSessions);
+                    }
+                } else {
+                    window.currentUserUID = null;
+                    window.firebaseIdToken = null;
+                    document.getElementById('user-name').innerText = "Guest User";
+                    document.getElementById('user-email').innerText = "Not Synced";
+                    document.getElementById('user-avatar').src = "https://ui-avatars.com/api/?name=Guest&background=18181b&color=fff";
+                    loginBtn.innerHTML = '<i class="fa-brands fa-google"></i> Sign in with Google';
+                }
+            });
+
+            window.saveToCloud = async function(sessionsObj) {
+                if (window.currentUserUID) {
+                    await setDoc(doc(db, "users", window.currentUserUID), { sessions: sessionsObj });
+                }
+            };
+        } catch(e) { console.warn("Firebase not configured:", e); }
+    </script>
+
+    <!-- ============== MAIN APPLICATION SCRIPT ============== -->
+    <script>
+        // ▸ Your deployed backend URL
+        const API_URL = "https://novarag-api.onrender.com";
+
+        // ▸ State
+        window.allSessions = JSON.parse(localStorage.getItem('novarag_sessions')) || {};
+        let sessionId = localStorage.getItem('novarag_session_id') || crypto.randomUUID();
+        if (!window.allSessions[sessionId]) window.allSessions[sessionId] = { title: "New Workspace", history: [], updatedAt: Date.now() };
+        window.chatHistory = window.allSessions[sessionId].history;
+        let useWebSearch = false;
+        let activeTemp = 0.2;
+        let modelMode = "quality"; // "quality" = 70b, "speed" = 8b
+        let workspaceToDelete = null;
+        let isStreaming = false;
+        let abortController = null;
+        let isResearching = false;
+        let activeWorkspaceView = "chat";
+        let inlineMolViewers = {};
+        let mainViewer = null;
+        let mainViewerReady = false;
+        let mainViewerSpin = false;
+        let labRepresentation = "ballstick";
+        let labModel = null;
+        let labOriginalAtoms = [];
+        let labCenter = { x: 0, y: 0, z: 0 };
+        let labFormat = "";
+        const chatBox = document.getElementById('chat-box');
+        const chatInput = document.getElementById('chat-input');
+
+        // ▸ Helper to build auth headers
+        function getAuthHeaders(contentType) {
+            const h = {};
+            if (contentType) h['Content-Type'] = contentType;
+            if (window.firebaseIdToken) h['Authorization'] = `Bearer ${window.firebaseIdToken}`;
+            return h;
+        }
+
+        // ▸ UI helpers
+        function openSidebar() { document.getElementById('app-sidebar').classList.remove('-translate-x-full'); document.getElementById('sidebar-backdrop').classList.remove('hidden'); }
+        function closeSidebar() { document.getElementById('app-sidebar').classList.add('-translate-x-full'); document.getElementById('sidebar-backdrop').classList.add('hidden'); }
+        function toggleSettings() { document.getElementById('settings-modal').classList.toggle('hidden'); if(window.innerWidth < 768) closeSidebar(); }
+        function setPrompt(text) { chatInput.value = text; chatInput.focus(); }
+
+        function toggleWebSearch() {
+            useWebSearch = !useWebSearch;
+            const btn = document.getElementById('web-btn');
+            btn.classList.toggle('text-white', useWebSearch);
+            btn.classList.toggle('text-gray-400', !useWebSearch);
+            btn.classList.toggle('bg-indigo-500/20', useWebSearch);
+            showToast(useWebSearch ? "Web search enabled" : "Web search disabled", "success");
+        }
+
+        function setModelMode(mode) {
+            modelMode = mode;
+            const badge = document.getElementById('model-badge');
+            const qBtn = document.getElementById('mode-quality');
+            const sBtn = document.getElementById('mode-speed');
+            if (mode === 'quality') {
+                badge.textContent = '70B Quality';
+                badge.className = 'model-badge bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
+                qBtn.className = 'p-3 rounded-xl border text-left transition-all bg-indigo-500/10 border-indigo-500/30 text-indigo-300';
+                sBtn.className = 'p-3 rounded-xl border text-left transition-all bg-[#27272a] border-[#3f3f46] text-gray-400';
+            } else {
+                badge.textContent = '8B Speed';
+                badge.className = 'model-badge bg-amber-500/20 text-amber-300 border border-amber-500/30';
+                sBtn.className = 'p-3 rounded-xl border text-left transition-all bg-amber-500/10 border-amber-500/30 text-amber-300';
+                qBtn.className = 'p-3 rounded-xl border text-left transition-all bg-[#27272a] border-[#3f3f46] text-gray-400';
+            }
+        }
+
+        function showToast(msg, type='success') {
+            const t = document.createElement('div');
+            t.className = `bg-[#18181b] border-l-2 ${type==='success'?'border-emerald-500':'border-red-500'} shadow-2xl p-3 md:p-3.5 rounded-lg flex items-center gap-3 animate-in w-full md:w-auto md:min-w-[250px] z-[100]`;
+            t.innerHTML = `<span class="text-[13px] md:text-sm font-medium text-gray-200">${msg}</span>`;
+            document.getElementById('toast-container').appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.4s'; setTimeout(() => t.remove(), 400); }, 3500);
+        }
+
+        // ▸ Markdown renderer setup
+        const renderer = new marked.Renderer();
+        renderer.table = (header, body) => `<div class="overflow-x-auto"><table><thead>${header}</thead><tbody>${body}</tbody></table></div>`;
+        renderer.image = (href, title, text) => `<div class="my-5"><img src="${href}" alt="${text}" class="w-full max-w-lg rounded-xl border border-[#3f3f46] shadow-xl object-contain bg-[#18181b] p-2" loading="lazy"><p class="text-[11px] text-gray-500 mt-2 text-center italic">${text}</p></div>`;
+        renderer.code = function(code, language) {
+            const lang = hljs.getLanguage(language) ? language : 'plaintext';
+            const highlighted = hljs.highlight(code, { language: lang }).value;
+            const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
+            return `<div class="relative group mb-4 font-sans"><div class="flex items-center justify-between bg-[#27272a] text-gray-400 px-3 py-1.5 text-[11px] uppercase tracking-wider font-semibold rounded-t-xl border border-[#3f3f46] border-b-0"><span>${lang}</span><button onclick="copyCode('${codeId}')" class="hover:text-white transition-colors flex items-center gap-1.5"><i class="fa-regular fa-copy"></i> Copy</button></div><pre class="!mt-0 !rounded-t-none !rounded-b-xl"><code id="${codeId}" class="hljs ${lang}">${highlighted}</code></pre></div>`;
+        };
+        marked.setOptions({ renderer });
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function escapeAttr(value) {
+            return escapeHtml(value).replace(/`/g, '&#096;');
+        }
+
+        function isCifData(str) {
+            // Detect CIF crystallographic data vs SMILES
+            const s = str.trim();
+            return s.startsWith('data_') || s.includes('_cell_length_a') || s.includes('_symmetry_space_group');
+        }
+
+        function renderMarkdownWithMolecules(text) {
+            const htmlReady = String(text || '').replace(/<render-smiles>([\s\S]*?)<\/render-smiles>/gi, (match, content) => {
+                const cleanContent = content.trim();
+                if (!cleanContent) return '';
+                const id = `mol-${Math.random().toString(36).slice(2, 10)}`;
+                const isCif = isCifData(cleanContent);
+                const dataAttr = isCif ? 'data-cif' : 'data-smiles';
+                const label = isCif ? 'CIF Crystal' : `SMILES: ${escapeHtml(cleanContent)}`;
+                return `\n\n<div class="inline-mol-viewer" id="${id}" ${dataAttr}="${escapeAttr(cleanContent)}"><div class="inline-mol-label">${label}</div></div>\n\n`;
+            });
+            return marked.parse(htmlReady);
+        }
+
+        function initAllInlineMolViewers(container) {
+            if (!container || typeof $3Dmol === 'undefined') return;
+            container.querySelectorAll('.inline-mol-viewer').forEach((el) => {
+                if (el.dataset.initialized) return;
+                el.dataset.initialized = 'true';
+                const smiles = el.dataset.smiles;
+                const cif = el.dataset.cif;
+                try {
+                    const viewer = $3Dmol.createViewer(el, {
+                        backgroundColor: '#08080d',
+                        antialias: true,
+                    });
+                    inlineMolViewers[el.id] = viewer;
+                    if (cif) {
+                        loadCifIntoViewer(viewer, cif);
+                    } else if (smiles) {
+                        loadSmilesIntoViewer(viewer, smiles);
+                    }
+                } catch (err) {
+                    el.innerHTML += `<div class="inline-mol-error">3D viewer failed to initialize.</div>`;
+                }
+            });
+        }
+
+        function loadCifIntoViewer(viewer, cifData) {
+            try {
+                viewer.clear();
+                viewer.addModel(cifData.trim(), 'cif');
+                viewer.setStyle({}, { stick: { radius: 0.15, colorscheme: 'Jmol' }, sphere: { scale: 0.28, colorscheme: 'Jmol' } });
+                if (viewer.addUnitCell) viewer.addUnitCell();
+                viewer.zoomTo();
+                viewer.render();
+                viewer.spin('y', 0.6);
+            } catch (err) {
+                const container = viewer.container || viewer.div;
+                if (container) container.innerHTML += `<div class="inline-mol-error">Unable to render CIF structure.</div>`;
+            }
+        }
+
+        async function loadSmilesIntoViewer(viewer, smiles) {
+            try {
+                const url3d = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(smiles)}/SDF?record_type=3d`;
+                let response = await fetch(url3d);
+                if (!response.ok) {
+                    const url2d = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(smiles)}/SDF`;
+                    response = await fetch(url2d);
+                }
+                if (!response.ok) throw new Error("PubChem lookup failed");
+                const sdf = await response.text();
+                if (!sdf || !sdf.trim()) throw new Error("Empty SDF");
+                viewer.clear();
+                viewer.addModel(sdf.trim(), 'sdf');
+                viewer.setStyle({}, { stick: { radius: 0.15, colorscheme: 'Jmol' }, sphere: { scale: 0.28, colorscheme: 'Jmol' } });
+                viewer.zoomTo();
+                viewer.render();
+                viewer.spin('y', 0.6);
+            } catch (err) {
+                // Hide the entire viewer container when SMILES can't be resolved
+                const viewerEl = viewer.container || viewer.div;
+                if (viewerEl) {
+                    const wrapper = viewerEl.closest('.inline-mol-viewer');
+                    if (wrapper) {
+                        wrapper.classList.add('mol-failed');
+                    } else {
+                        viewerEl.style.display = 'none';
+                    }
+                }
+                console.warn(`3D structure unavailable for SMILES: ${smiles}`);
+            }
+        }
+
+        window.copyCode = function(id) {
+            navigator.clipboard.writeText(document.getElementById(id).innerText);
+            showToast("Copied!", "success");
+        }
+
+        // ▸ Session management
+        window.onload = () => { renderChatHistory(); updateSidebarSessions(); };
+
+        function renderChatHistory() {
+            document.getElementById('chat-content').innerHTML = '';
+            if (window.chatHistory.length > 0) {
+                document.getElementById('welcome-screen').classList.add('hidden');
+                window.chatHistory.forEach(msg => addMessage(msg.content, msg.role === 'user' ? 'user' : 'bot', true));
+            } else {
+                document.getElementById('welcome-screen').classList.remove('hidden');
+            }
+        }
+
+        function saveLocalData() {
+            if (window.chatHistory.length > 0 && window.allSessions[sessionId].title === "New Workspace") {
+                const firstMsg = window.chatHistory.find(m => m.role === 'user');
+                if (firstMsg) {
+                    let title = firstMsg.content.replace(/^(write|create|generate|what is|how to|can you|analyze|explain)\s+/i, '');
+                    title = title.charAt(0).toUpperCase() + title.slice(1);
+                    window.allSessions[sessionId].title = title.substring(0, 25) + (title.length > 25 ? "..." : "");
+                }
+            }
+            window.allSessions[sessionId].history = window.chatHistory;
+            window.allSessions[sessionId].updatedAt = Date.now();
+            localStorage.setItem('novarag_sessions', JSON.stringify(window.allSessions));
+            localStorage.setItem('novarag_session_id', sessionId);
+            updateSidebarSessions();
+            if (window.saveToCloud) window.saveToCloud(window.allSessions);
+        }
+
+        function updateSidebarSessions() {
+            const list = document.getElementById('sessions-list');
+            list.innerHTML = '';
+            const sortedIds = Object.keys(window.allSessions).sort((a,b) => window.allSessions[b].updatedAt - window.allSessions[a].updatedAt);
+            sortedIds.forEach(id => {
+                if (window.allSessions[id].history.length === 0 && id !== sessionId) return;
+                const wrapper = document.createElement('div');
+                wrapper.className = `w-full flex items-center justify-between px-3 py-2.5 rounded-lg mb-1 group transition-all cursor-pointer ${id === sessionId ? 'bg-[#27272a] text-white border border-[#3f3f46]' : 'text-gray-400 hover:bg-[#18181b] hover:text-gray-200'}`;
+                const titleBtn = document.createElement('div');
+                titleBtn.className = "flex-1 truncate text-[13px] font-medium flex items-center gap-2";
+                titleBtn.innerHTML = `<i class="fa-regular fa-message text-[11px] opacity-70"></i> <span class="truncate">${window.allSessions[id].title}</span>`;
+                titleBtn.onclick = () => window.loadSession(id);
+                const delBtn = document.createElement('button');
+                delBtn.className = "opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-all px-1";
+                delBtn.innerHTML = `<i class="fa-regular fa-trash-can"></i>`;
+                delBtn.onclick = (e) => { e.stopPropagation(); confirmDeleteWorkspace(id); };
+                wrapper.appendChild(titleBtn);
+                wrapper.appendChild(delBtn);
+                list.appendChild(wrapper);
+            });
+        }
+
+        window.loadSession = function(id) {
+            sessionId = id;
+            localStorage.setItem('novarag_session_id', sessionId);
+            window.chatHistory = window.allSessions[sessionId].history || [];
+            document.getElementById('cif-badge').classList.add('hidden');
+            document.getElementById('upload-status').classList.add('hidden');
+            renderChatHistory();
+            updateSidebarSessions();
+            if (window.innerWidth < 768) closeSidebar();
+        }
+
+        window.createNewWorkspace = function() {
+            if (window.chatHistory.length === 0) { if(window.innerWidth < 768) closeSidebar(); return; }
+            sessionId = crypto.randomUUID();
+            window.allSessions[sessionId] = { title: "New Workspace", history: [], updatedAt: Date.now() };
+            window.chatHistory = [];
+            localStorage.setItem('novarag_session_id', sessionId);
+            localStorage.setItem('novarag_sessions', JSON.stringify(window.allSessions));
+            renderChatHistory();
+            updateSidebarSessions();
+            document.getElementById('cif-badge').classList.add('hidden');
+            document.getElementById('upload-status').classList.add('hidden');
+            if (window.innerWidth < 768) closeSidebar();
+        }
+
+        window.confirmDeleteWorkspace = function(id) { workspaceToDelete = id; document.getElementById('delete-modal').classList.remove('hidden'); }
+        window.cancelDelete = function() { workspaceToDelete = null; document.getElementById('delete-modal').classList.add('hidden'); }
+        window.executeDelete = function() {
+            if (!workspaceToDelete) return;
+            delete window.allSessions[workspaceToDelete];
+            if (workspaceToDelete === sessionId) window.createNewWorkspace();
+            else { localStorage.setItem('novarag_sessions', JSON.stringify(window.allSessions)); updateSidebarSessions(); }
+            if (window.saveToCloud) window.saveToCloud(window.allSessions);
+            workspaceToDelete = null;
+            document.getElementById('delete-modal').classList.add('hidden');
+            showToast("Workspace deleted.", "success");
+        }
+
+        function exportChat() {
+            // Chat view only — downloads the current workspace chat as PDF
+            if (window.chatHistory.length === 0) { showToast('No chat data to export.', 'error'); return; }
+            const chatEl = document.getElementById('chat-content');
+            if (!chatEl || !chatEl.innerHTML.trim()) { showToast('No chat data to export.', 'error'); return; }
+            const title = window.allSessions[sessionId]?.title || 'NovaRAG_Chat';
+            exportElementAsPdf(chatEl, title.replace(/\s+/g, '_'));
+        }
+
+        function exportScholarReport() {
+            // Scholar view — downloads the research report as PDF
+            const reportEl = document.getElementById('scholar-report-content');
+            if (!reportEl || reportEl.classList.contains('hidden') || !reportEl.innerHTML.trim()) {
+                showToast('No research report to export. Run a research query first.', 'error');
+                return;
+            }
+            exportElementAsPdf(reportEl, 'NovaRAG_Research_Report');
+        }
+
+        function exportElementAsPdf(element, filename) {
+            if (typeof html2pdf === 'undefined') {
+                showToast('PDF library loading... please try again in a moment.', 'error');
+                return;
+            }
+            showToast('Generating PDF...', 'success');
+
+            // Clone element to style for PDF without affecting live UI
+            const clone = element.cloneNode(true);
+
+            // Remove 3D viewer canvases (not PDF-friendly), replace with labels
+            clone.querySelectorAll('.inline-mol-viewer').forEach(v => {
+                const label = v.querySelector('.inline-mol-label');
+                const text = label ? label.textContent : '3D Structure';
+                v.innerHTML = `<div style="padding:20px;text-align:center;border:1px solid #444;border-radius:8px;background:#18181b;color:#94a3b8;font-size:12px;">[3D Structure: ${text}]</div>`;
+            });
+
+            // Remove action buttons from chat messages
+            clone.querySelectorAll('.action-btn').forEach(btn => btn.remove());
+
+            // Remove tailwind overflow/height constraints so full content renders in PDF
+            clone.style.height = 'auto';
+            clone.style.maxHeight = 'none';
+            clone.style.overflow = 'visible';
+            clone.style.flex = 'none';
+            clone.className = clone.className.replace(/overflow-y-auto|overflow-auto|flex-1/g, '');
+
+            // Create a wrapper with styling for PDF
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = 'background:#09090b;color:#e4e4e7;padding:24px;font-family:Inter,sans-serif;font-size:13px;line-height:1.7;height:auto;overflow:visible;';
+
+
+            // Add header
+            const header = document.createElement('div');
+            header.style.cssText = 'text-align:center;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #27272a;';
+            header.innerHTML = `<h1 style="color:#fff;font-size:20px;margin:0 0 4px;">NovaRAG</h1><p style="color:#94a3b8;font-size:11px;margin:0;">Material Science AI · Exported ${new Date().toLocaleDateString()}</p>`;
+            wrapper.appendChild(header);
+            wrapper.appendChild(clone);
+
+            // Temporarily add to DOM (hidden) for html2pdf to measure
+            wrapper.style.position = 'fixed';
+            wrapper.style.left = '-9999px';
+            wrapper.style.width = '700px';
+            document.body.appendChild(wrapper);
+
+            const opt = {
+                margin: [10, 10, 10, 10],
+                filename: `${filename}.pdf`,
+                image: { type: 'jpeg', quality: 0.95 },
+                html2canvas: {
+                    scale: 2,
+                    backgroundColor: '#09090b',
+                    useCORS: true,
+                    logging: false,
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+            };
+
+            html2pdf().set(opt).from(wrapper).save().then(() => {
+                document.body.removeChild(wrapper);
+                showToast('PDF downloaded successfully!', 'success');
+            }).catch(err => {
+                document.body.removeChild(wrapper);
+                console.error('PDF export failed:', err);
+                showToast('PDF export failed. Try again.', 'error');
+            });
+        }
+
+        // ▸ File upload with auth headers
+        document.getElementById('file-upload').addEventListener('change', async (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            if (file.size > 15 * 1024 * 1024) { showToast("Max 15MB allowed.", "error"); e.target.value=''; return; }
+
+            const status = document.getElementById('upload-status');
+            status.classList.remove('hidden');
+            status.innerText = "⏳ Indexing...";
+
+            const fd = new FormData();
+            fd.append("file", file);
+            fd.append("session_id", sessionId);
+            fd.append("global_opt_in", document.getElementById('global-opt-in').checked);
+
+            try {
+                const headers = {};
+                if (window.firebaseIdToken) headers['Authorization'] = `Bearer ${window.firebaseIdToken}`;
+                const res = await fetch(`${API_URL}/upload`, { method: 'POST', body: fd, headers });
+                const data = await res.json();
+                if (data.status === "success") {
+                    status.innerText = `✅ ${data.file_name || file.name}${data.chunks_created ? ' · ' + data.chunks_created + ' segments' : ''}`;
+                    showToast(data.message, 'success');
+                    document.getElementById('cif-badge').classList.remove('hidden');
+                } else throw new Error(data.message);
+            } catch (err) { status.innerText = "❌ Upload failed"; showToast(err.message, 'error'); }
+            e.target.value = '';
+        });
+
+        // ▸ Enter key — works on both desktop and mobile
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+        });
+
+        // ▸ Send message with streaming
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text || isStreaming) return;
+            document.getElementById('welcome-screen').classList.add('hidden');
+            addMessage(text, 'user');
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+
+            isStreaming = true;
+            document.getElementById('status-bar').classList.remove('hidden');
+            document.getElementById('send-btn').innerHTML = '<i class="fa-solid fa-stop text-[12px]"></i>';
+
+            const botBubble = addMessage('<span class="blinking-cursor"></span>', 'bot');
+            let botText = "";
+
+            try {
+                abortController = new AbortController();
+                const response = await fetch(`${API_URL}/chat`, {
+                    method: 'POST',
+                    headers: getAuthHeaders('application/json'),
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        message: text,
+                        history: window.chatHistory,
+                        use_web: useWebSearch,
+                        temperature: activeTemp,
+                        model_mode: modelMode,
+                    }),
+                    signal: abortController.signal,
+                });
+
+                if (!response.ok) throw new Error(`Server error (${response.status})`);
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                let buffer = "";
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n\n');
+                    buffer = lines.pop(); // Keep the last incomplete chunk in the buffer
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const payload = line.replace('data: ', '');
+                            if (payload === '[DONE]') break;
+                            botText += payload.replace(/<br>/g, "\n");
+                            botBubble.innerHTML = renderMarkdownWithMolecules(botText) + '<span class="blinking-cursor"></span>';
+                            initAllInlineMolViewers(botBubble);
+                            chatBox.scrollTop = chatBox.scrollHeight;
+                        }
+                    }
+                }
+
+                botBubble.innerHTML = renderMarkdownWithMolecules(botText);
+                initAllInlineMolViewers(botBubble);
+                window.chatHistory.push({ role: "user", content: text }, { role: "assistant", content: botText });
+                saveLocalData();
+                addMessageActions(botBubble, text);
+
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    botBubble.innerHTML = renderMarkdownWithMolecules(botText || '_Response stopped._');
+                    initAllInlineMolViewers(botBubble);
+                    if (botText) {
+                        window.chatHistory.push({ role: "user", content: text }, { role: "assistant", content: botText });
+                        saveLocalData();
+                    }
+                } else {
+                    botBubble.innerHTML = `<span class="text-red-400">Network error: ${err.message}. Is the server awake?</span>`;
+                }
+            }
+
+            isStreaming = false;
+            abortController = null;
+            document.getElementById('status-bar').classList.add('hidden');
+            document.getElementById('send-btn').innerHTML = '<i class="fa-solid fa-arrow-up text-[14px]"></i>';
+        }
+
+        // ▸ Send or Stop button
+        document.getElementById('send-btn').addEventListener('click', () => {
+            if (isStreaming && abortController) { abortController.abort(); }
+            else { sendMessage(); }
+        });
+
+        // ▸ Add message to chat
+        function addMessage(text, role, isHistoryLoad = false) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `msg-wrapper flex gap-2 md:gap-4 mb-5 md:mb-6 w-full animate-in ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+            const bubble = document.createElement('div');
+
+            if (role === 'user') {
+                bubble.className = 'max-w-[85%] md:max-w-[75%] bg-white/5 border border-white/10 text-gray-100 px-4 py-2.5 md:px-5 md:py-3.5 rounded-3xl rounded-tr-sm text-[14px] md:text-[15px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-md break-words';
+                bubble.innerText = text;
+            } else {
+                wrapper.innerHTML = `<div class="w-7 h-7 md:w-8 md:h-8 rounded-xl bg-black flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.1)] mt-1 border border-white/20 overflow-hidden"><img src="/logo.png" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'"></div>`;
+                bubble.className = 'max-w-[85%] bg-transparent text-gray-200 markdown pt-0.5 overflow-hidden w-full';
+                bubble.innerHTML = isHistoryLoad ? renderMarkdownWithMolecules(text) : text;
+            }
+
+            wrapper.appendChild(bubble);
+            document.getElementById('chat-content').appendChild(wrapper);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Add regenerate button for history-loaded bot messages
+            if (role === 'bot' && isHistoryLoad) {
+                initAllInlineMolViewers(bubble);
+                addMessageActions(bubble, null);
+            }
+
+            return bubble;
+        }
+
+        // ▸ Regenerate / Copy actions on bot messages
+        function addMessageActions(bubble, originalQuestion) {
+            const actions = document.createElement('div');
+            actions.className = 'action-btn flex items-center gap-2 mt-2';
+
+            // Copy button
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'text-gray-500 hover:text-white text-[11px] flex items-center gap-1 px-2 py-1 rounded hover:bg-[#27272a] transition-all';
+            copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
+            copyBtn.onclick = () => {
+                const text = bubble.innerText;
+                navigator.clipboard.writeText(text);
+                showToast("Copied!", "success");
+            };
+            actions.appendChild(copyBtn);
+
+            // Regenerate button (only if we know the original question)
+            if (originalQuestion) {
+                const regenBtn = document.createElement('button');
+                regenBtn.className = 'text-gray-500 hover:text-white text-[11px] flex items-center gap-1 px-2 py-1 rounded hover:bg-[#27272a] transition-all';
+                regenBtn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Regenerate';
+                regenBtn.onclick = () => {
+                    // Remove last bot + user message from history and re-send
+                    if (window.chatHistory.length >= 2) {
+                        window.chatHistory.pop(); // remove assistant
+                        window.chatHistory.pop(); // remove user
+                    }
+                    // Remove the bot message wrapper from DOM
+                    const wrapper = bubble.closest('.msg-wrapper');
+                    const prevWrapper = wrapper.previousElementSibling;
+                    if (prevWrapper) prevWrapper.remove(); // remove user message
+                    wrapper.remove(); // remove bot message
+                    chatInput.value = originalQuestion;
+                    sendMessage();
+                };
+                actions.appendChild(regenBtn);
+            }
+
+            bubble.parentElement.appendChild(actions);
+        }
+
+        function switchWorkspaceView(view) {
+            activeWorkspaceView = view;
+            const isChat = view === 'chat';
+            document.getElementById('chat-box').classList.toggle('hidden', !isChat);
+            document.getElementById('chat-input-area').classList.toggle('hidden', !isChat);
+            document.getElementById('scholar-panel').classList.toggle('hidden', view !== 'scholar');
+            document.getElementById('lab-panel').classList.toggle('hidden', view !== 'lab');
+            ['chat', 'scholar', 'lab'].forEach((name) => {
+                document.getElementById(`view-${name}`).classList.toggle('active', view === name);
+            });
+            // Export button visibility: only show in Chat view
+            const exportBtn = document.getElementById('header-export-btn');
+            if (exportBtn) exportBtn.style.display = isChat ? 'flex' : 'none';
+            if (view === 'lab') setTimeout(initMain3DViewer, 80);
+        }
+
+        function handleScholarKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                startResearch();
+            }
+        }
+
+        function addTerminalLine(text, type = '') {
+            const terminal = document.getElementById('scholar-terminal');
+            const line = document.createElement('div');
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            line.className = `term-line ${type}`;
+            line.innerHTML = `<span class="term-time">${time}</span><span class="term-text">${escapeHtml(text)}</span>`;
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        async function startResearch() {
+            const input = document.getElementById('scholar-input');
+            const query = input.value.trim();
+            if (!query || isResearching) return;
+
+            isResearching = true;
+            document.getElementById('scholar-send').disabled = true;
+            document.getElementById('scholar-terminal').innerHTML = '';
+            document.getElementById('scholar-empty').classList.add('hidden');
+            // Hide download button during research
+            const dlBtn = document.getElementById('scholar-download-btn');
+            if (dlBtn) dlBtn.style.display = 'none';
+            const reportContent = document.getElementById('scholar-report-content');
+            reportContent.classList.remove('hidden');
+            reportContent.innerHTML = '<p class="text-gray-400">Research stream initializing...</p>';
+            addTerminalLine(`Starting ${document.getElementById('scholar-depth').value} research`, 'phase');
+            addTerminalLine(`Query: ${query}`);
+
+            const depth = document.getElementById('scholar-depth').value;
+            let reportText = '';
+            input.value = '';
+            input.style.height = 'auto';
+
+            try {
+                const response = await fetch(`${API_URL}/api/v1/research/stream`, {
+                    method: 'POST',
+                    headers: getAuthHeaders('application/json'),
+                    body: JSON.stringify({
+                        query,
+                        session_id: sessionId,
+                        depth,
+                        use_web: useWebSearch,
+                        model_mode: modelMode,
+                    }),
+                });
+
+                if (!response.ok) throw new Error(`Server error (${response.status})`);
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                let buffer = "";
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+                    const events = buffer.split('\n\n');
+                    buffer = events.pop();
+
+                    for (const rawEvent of events) {
+                        if (!rawEvent.startsWith('data: ')) continue;
+                        const payload = rawEvent.slice(6).trim();
+                        if (!payload || payload === '[DONE]') continue;
+                        const event = JSON.parse(payload);
+
+                        if (event.type === 'thought') {
+                            addTerminalLine(event.content || '');
+                        } else if (event.type === 'phase') {
+                            const content = event.content || {};
+                            addTerminalLine(`${content.name || event.phase || 'phase'}: ${content.state || 'updated'}`, 'phase');
+                        } else if (event.type === 'result') {
+                            reportText = event.content || '';
+                            reportContent.innerHTML = renderMarkdownWithMolecules(reportText);
+                            initAllInlineMolViewers(reportContent);
+                        } else if (event.type === 'error') {
+                            addTerminalLine(event.content || 'Research error', 'error');
+                        } else if (event.type === 'done') {
+                            addTerminalLine('Research complete', 'phase');
+                        }
+                    }
+                }
+
+                if (!reportText) {
+                    reportContent.innerHTML = '<p class="text-red-400">No report was returned by the research stream.</p>';
+                } else {
+                    // Show the download PDF button when report is ready
+                    const dlBtn = document.getElementById('scholar-download-btn');
+                    if (dlBtn) dlBtn.style.display = 'inline-flex';
+                }
+            } catch (err) {
+                addTerminalLine(err.message, 'error');
+                reportContent.innerHTML = `<p class="text-red-400">Research failed: ${escapeHtml(err.message)}</p>`;
+            } finally {
+                isResearching = false;
+                document.getElementById('scholar-send').disabled = false;
+            }
+        }
+
+        const CIF_PRESETS = {
+            diamond: `data_diamond
+_symmetry_space_group_name_H-M 'F d -3 m'
+_cell_length_a 3.567
+_cell_length_b 3.567
+_cell_length_c 3.567
+_cell_angle_alpha 90
+_cell_angle_beta 90
+_cell_angle_gamma 90
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+C1 C 0.00000 0.00000 0.00000
+C2 C 0.25000 0.25000 0.25000`
+        };
+
+        function initMain3DViewer() {
+            const container = document.getElementById('viewer3d-main');
+            if (!container || mainViewerReady || typeof $3Dmol === 'undefined') return;
+            mainViewer = $3Dmol.createViewer(container, {
+                backgroundColor: '#05050a',
+                antialias: true,
+            });
+            mainViewerReady = true;
+            updateLabStatus('Spatial Engine Ready');
+            const smiles = document.getElementById('smiles-input').value.trim();
+            if (smiles) renderLabSmiles();
+            setTimeout(() => mainViewer.resize && mainViewer.resize(), 60);
+        }
+
+        function updateLabStatus(status, format = labFormat) {
+            const statusEl = document.getElementById('lab-status');
+            const formatEl = document.getElementById('lab-format');
+            if (statusEl) statusEl.textContent = status;
+            if (formatEl) formatEl.textContent = format || 'No structure loaded';
+        }
+
+        function loadPresetSmiles(smiles) {
+            document.getElementById('smiles-input').value = smiles;
+            switchWorkspaceView('lab');
+            setTimeout(renderLabSmiles, 120);
+        }
+
+        function loadPresetCif(name) {
+            const cif = CIF_PRESETS[name] || '';
+            document.getElementById('cif-input').value = cif;
+            switchWorkspaceView('lab');
+            setTimeout(renderLabCif, 120);
+        }
+
+        async function renderLabSmiles() {
+            initMain3DViewer();
+            const smiles = document.getElementById('smiles-input').value.trim();
+            if (!smiles || !mainViewer) return;
+            updateLabStatus('Loading molecule from PubChem...', `SMILES · ${smiles}`);
+            try {
+                const sdf = await fetchSdfForSmiles(smiles);
+                loadStructureIntoLab(sdf, 'sdf', `SMILES · ${smiles}`);
+                showToast('Molecule rendered.', 'success');
+            } catch (err) {
+                updateLabStatus('SMILES load failed', `SMILES · ${smiles}`);
+                showToast(err.message || 'Unable to load SMILES', 'error');
+            }
+        }
+
+        async function fetchSdfForSmiles(smiles) {
+            const url3d = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(smiles)}/SDF?record_type=3d`;
+            let response = await fetch(url3d);
+            if (!response.ok) {
+                const url2d = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(smiles)}/SDF`;
+                response = await fetch(url2d);
+            }
+            if (!response.ok) throw new Error('PubChem lookup failed');
+            const sdf = await response.text();
+            if (!sdf.trim()) throw new Error('PubChem returned an empty structure');
+            return sdf;
+        }
+
+        function renderLabCif() {
+            initMain3DViewer();
+            const cif = document.getElementById('cif-input').value.trim();
+            if (!cif || !mainViewer) return;
+            try {
+                loadStructureIntoLab(cif, 'cif', 'CIF crystal lattice');
+                showToast('CIF lattice rendered.', 'success');
+            } catch (err) {
+                updateLabStatus('CIF load failed', 'CIF');
+                showToast('Unable to parse CIF data', 'error');
+            }
+        }
+
+        function loadStructureIntoLab(data, format, label) {
+            mainViewer.clear();
+            labModel = mainViewer.addModel(data.trim(), format);
+            labFormat = label;
+            resetThermalExpansion(false);
+            captureLabAtoms();
+            setLabRepresentation(labRepresentation);
+            centerLabViewer();
+            if (format === 'cif' && mainViewer.addUnitCell) mainViewer.addUnitCell();
+            if (mainViewerSpin) mainViewer.spin('y', 0.8);
+            updateLabStatus('Structure centered', label);
+        }
+
+        function captureLabAtoms() {
+            const atoms = labModel && labModel.selectedAtoms ? labModel.selectedAtoms({}) : [];
+            if (!atoms || atoms.length === 0) {
+                labOriginalAtoms = [];
+                labCenter = { x: 0, y: 0, z: 0 };
+                return;
+            }
+            labCenter = atoms.reduce((acc, atom) => ({
+                x: acc.x + atom.x,
+                y: acc.y + atom.y,
+                z: acc.z + atom.z,
+            }), { x: 0, y: 0, z: 0 });
+            labCenter.x /= atoms.length;
+            labCenter.y /= atoms.length;
+            labCenter.z /= atoms.length;
+            labOriginalAtoms = atoms.map(atom => ({
+                atom,
+                x: atom.x,
+                y: atom.y,
+                z: atom.z,
+            }));
+        }
+
+        function centerLabViewer() {
+            if (!mainViewer) return;
+            if (mainViewer.resize) mainViewer.resize();
+            mainViewer.zoomTo();
+            mainViewer.render();
+        }
+
+        function setLabRepresentation(mode) {
+            if (!mainViewer) return;
+            labRepresentation = mode;
+            mainViewer.setStyle({}, {});
+            const styles = {
+                sphere: { sphere: { scale: 0.72, colorscheme: 'Jmol' } },
+                stick: { stick: { radius: 0.16, colorscheme: 'Jmol' } },
+                ballstick: { stick: { radius: 0.13, colorscheme: 'Jmol' }, sphere: { scale: 0.28, colorscheme: 'Jmol' } },
+            };
+            mainViewer.setStyle({}, styles[mode] || styles.ballstick);
+            ['ballstick', 'stick', 'sphere'].forEach(name => {
+                const btn = document.getElementById(`lab-rep-${name}`);
+                if (!btn) return;
+                btn.classList.toggle('active', name === mode);
+                btn.classList.toggle('secondary', name !== mode);
+            });
+            mainViewer.render();
+        }
+
+        // Debye temperature database (K) for common elements
+        const DEBYE_TEMPS = {
+            C: 2230, Si: 645, Ge: 374, O: 500, N: 400, H: 1500, Fe: 470,
+            Cu: 343, Al: 428, Zn: 327, Ti: 420, Ni: 450, S: 400, P: 400,
+            Cl: 350, F: 450, Br: 300, I: 250, Na: 158, K: 91, Ca: 230,
+            Mg: 400, Li: 344, B: 1480, Ag: 225, Au: 165, Pt: 240, W: 400,
+            Mn: 410, Cr: 630, Co: 445, V: 380, Mo: 450, Sn: 200, Pb: 105
+        };
+
+        // Mean-square displacement using Debye model: <u²> = (3ℏ²T)/(mkBΘ²) simplified
+        // Returns RMS displacement in Angstroms
+        function getDebyeDisplacement(element, kelvin) {
+            const thetaD = DEBYE_TEMPS[element] || 350; // Default Debye temp
+            // Atomic mass approximation (simplified)
+            const massMap = {
+                H:1, He:4, Li:7, B:11, C:12, N:14, O:16, F:19, Na:23, Mg:24,
+                Al:27, Si:28, P:31, S:32, Cl:35, K:39, Ca:40, Ti:48, V:51,
+                Cr:52, Mn:55, Fe:56, Co:59, Ni:59, Cu:64, Zn:65, Ge:73, Br:80,
+                Mo:96, Ag:108, Sn:119, I:127, W:184, Pt:195, Au:197, Pb:207
+            };
+            const mass = massMap[element] || 40;
+            if (kelvin <= 0) return 0;
+            // Simplified Debye-Waller: B = (8π²ℏ²)/(mkBΘD) * [Φ(ΘD/T)/(ΘD/T) + 1/4]
+            // For T > ΘD/3, approximately: u_rms ≈ sqrt(3kBT/(mω²)) ∝ sqrt(T/m/ΘD²)
+            const ratio = kelvin / thetaD;
+            let phiApprox;
+            if (ratio > 0.5) {
+                // High-temp limit: Φ(x)/x ≈ 1/x for large T
+                phiApprox = ratio;
+            } else {
+                // Low-temp: Φ(x)/x ≈ π²/(6x²) + 0.25 roughly
+                phiApprox = 0.25 + (Math.PI * Math.PI * ratio * ratio) / 6;
+            }
+            // Scale factor calibrated so displacement is realistic (0.05-0.5 Å range)
+            const uRms = 0.08 * Math.sqrt(phiApprox / mass) * Math.sqrt(kelvin / 100 + 1);
+            return Math.min(uRms, 0.6); // Cap at 0.6 Å for visual stability
+        }
+
+        // Get thermal color for an atom based on temperature
+        function getAtomThermalColor(kelvin) {
+            const t = Math.min(kelvin / 2000, 1);
+            let r, g, b;
+            if (t <= 0.15) {
+                // Cool blue (0K-300K)
+                const p = t / 0.15;
+                r = Math.round(30 + 50 * p);
+                g = Math.round(100 + 80 * p);
+                b = Math.round(220 + 35 * p);
+            } else if (t <= 0.4) {
+                // Blue → White glow (300K-800K)
+                const p = (t - 0.15) / 0.25;
+                r = Math.round(80 + 175 * p);
+                g = Math.round(180 + 75 * p);
+                b = 255;
+            } else if (t <= 0.65) {
+                // White → Orange (800K-1300K)
+                const p = (t - 0.4) / 0.25;
+                r = 255;
+                g = Math.round(255 - 120 * p);
+                b = Math.round(255 - 220 * p);
+            } else {
+                // Orange → Deep Red (1300K-2000K)
+                const p = (t - 0.65) / 0.35;
+                r = Math.round(255 - 35 * p);
+                g = Math.round(135 - 95 * p);
+                b = Math.round(35 - 15 * p);
+            }
+            return `rgb(${r},${g},${b})`;
+        }
+
+        // Seeded random for reproducible thermal vibrations per atom
+        function seededRandom(seed) {
+            let x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+            return x - Math.floor(x);
+        }
+
+        function applyThermalExpansion(value) {
+            const kelvin = Number(value) || 0;
+            const thermalValueEl = document.getElementById('thermal-value');
+            thermalValueEl.textContent = `${kelvin} K`;
+            // Dynamic color for temperature readout
+            const color = getAtomThermalColor(kelvin);
+            thermalValueEl.style.color = color;
+            thermalValueEl.style.textShadow = kelvin > 800 ? `0 0 8px ${color}40` : 'none';
+
+            if (!labOriginalAtoms.length || !mainViewer) return;
+
+            // 1. Lattice expansion: coefficient ~1×10⁻⁵ /K (typical metals/ceramics)
+            const alpha = 1.2e-5; // Linear thermal expansion coefficient
+            const scale = 1 + alpha * kelvin;
+
+            // 2. Apply expansion + Debye-Waller thermal vibration
+            labOriginalAtoms.forEach(({ atom, x, y, z }, idx) => {
+                // Lattice expansion from center
+                const ex = labCenter.x + (x - labCenter.x) * scale;
+                const ey = labCenter.y + (y - labCenter.y) * scale;
+                const ez = labCenter.z + (z - labCenter.z) * scale;
+
+                // Thermal vibration (Debye-Waller displacement)
+                const elem = atom.elem || 'C';
+                const uRms = getDebyeDisplacement(elem, kelvin);
+                // Use seeded random for each atom + directional component
+                const dx = (seededRandom(idx * 3 + 1 + kelvin * 0.01) - 0.5) * 2 * uRms;
+                const dy = (seededRandom(idx * 3 + 2 + kelvin * 0.01) - 0.5) * 2 * uRms;
+                const dz = (seededRandom(idx * 3 + 3 + kelvin * 0.01) - 0.5) * 2 * uRms;
+
+                atom.x = ex + dx;
+                atom.y = ey + dy;
+                atom.z = ez + dz;
+            });
+
+            // 3. Temperature-dependent coloring
+            if (kelvin > 50) {
+                const atomColor = getAtomThermalColor(kelvin);
+                // High temp: color by thermal energy. Low temp: keep Jmol scheme
+                const blendFactor = Math.min(kelvin / 1200, 0.85);
+                if (blendFactor > 0.15) {
+                    mainViewer.setStyle({}, {
+                        stick: { radius: 0.13, color: atomColor },
+                        sphere: { scale: 0.28 + kelvin * 0.00005, color: atomColor }
+                    });
+                } else {
+                    // Keep Jmol at low temps
+                    mainViewer.setStyle({}, {
+                        stick: { radius: 0.13, colorscheme: 'Jmol' },
+                        sphere: { scale: 0.28, colorscheme: 'Jmol' }
+                    });
+                }
+            } else {
+                mainViewer.setStyle({}, {
+                    stick: { radius: 0.13, colorscheme: 'Jmol' },
+                    sphere: { scale: 0.28, colorscheme: 'Jmol' }
+                });
+            }
+
+            mainViewer.render();
+            const uAvg = labOriginalAtoms.length > 0
+                ? (labOriginalAtoms.reduce((sum, { atom }) => sum + getDebyeDisplacement(atom.elem || 'C', kelvin), 0) / labOriginalAtoms.length).toFixed(3)
+                : '0.000';
+            updateLabStatus(`${kelvin} K · expansion ×${scale.toFixed(4)} · ⟨u⟩=${uAvg} Å`);
+        }
+
+        function resetThermalExpansion(update = true) {
+            const slider = document.getElementById('thermal-slider');
+            const valueEl = document.getElementById('thermal-value');
+            if (slider) slider.value = 0;
+            if (valueEl) {
+                valueEl.textContent = '0 K';
+                valueEl.style.color = '#3b82f6';
+                valueEl.style.textShadow = 'none';
+            }
+            if (update && labOriginalAtoms.length) {
+                labOriginalAtoms.forEach(({ atom, x, y, z }) => {
+                    atom.x = x;
+                    atom.y = y;
+                    atom.z = z;
+                });
+                // Restore Jmol coloring
+                if (mainViewer) {
+                    mainViewer.setStyle({}, {
+                        stick: { radius: 0.13, colorscheme: 'Jmol' },
+                        sphere: { scale: 0.28, colorscheme: 'Jmol' }
+                    });
+                    mainViewer.render();
+                }
+                updateLabStatus('Temperature reset · 0 K');
+            }
+        }
+
+        function clearLabViewer() {
+            if (!mainViewer) return;
+            mainViewer.clear();
+            mainViewer.render();
+            labModel = null;
+            labOriginalAtoms = [];
+            labFormat = '';
+            resetThermalExpansion(false);
+            updateLabStatus('Spatial Engine Ready', '');
+        }
+
+        function toggleLabSpin() {
+            if (!mainViewer) return;
+            mainViewerSpin = !mainViewerSpin;
+            mainViewer.spin(mainViewerSpin ? 'y' : false, 0.8);
+            const btn = document.getElementById('lab-spin');
+            if (btn) {
+                btn.classList.toggle('active', mainViewerSpin);
+                btn.classList.toggle('secondary', !mainViewerSpin);
+            }
+        }
+
+        // ▸ Keyboard shortcut: Ctrl+Shift+N for new workspace
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'N') {
+                e.preventDefault();
+                window.createNewWorkspace();
+            }
+        });
+    </script>
+</body>
+</html>
